@@ -1,21 +1,16 @@
-class Hex
+class Rounder
   def initialize(app)
     @app = app
   end
 
   def call(env)
-    request = Rack::Request.new(env)
-    params = request.params
-
-    ["dividend", "divisor"].each do |p|
-      hex = params[p]
-      env['rack.request.query_hash'][p] = eval(hex) if hex.match(/^0x[0-9A-Fa-f]+$/)
-    end
-    @app.call(env)
+    status, header, body = @app.call(env)
+    rounded_body = sprintf("%.02f", body.first.to_f)
+    [status, header, [rounded_body]]
   end
 end
 
-use Hex
+use Rounder
 
 app = lambda do |env|
   request = Rack::Request.new(env)
