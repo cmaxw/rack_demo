@@ -11,7 +11,6 @@ class MyApp
 
   def call(env)
     route = @router.get_route(env).split(".")
-    puts route
     begin
       handler = eval(route[0]).new
     rescue NameError

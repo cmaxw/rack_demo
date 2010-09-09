@@ -11,7 +11,6 @@ class Router
   
   def self.map(&block)
     router = self.new
-    puts router.inspect
     router.instance_eval &block
     router
   end
