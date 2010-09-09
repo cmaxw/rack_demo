@@ -1,13 +1,17 @@
 class Handler
-  def one
-    "1"
+  def initialize(app)
+    @app = app
   end
   
-  def two
-    "2"
+  def call(env)
+    request = Rack::Request.new(env)
+    params = request.params
+    if params["handler"].downcase == self.class.to_s.downcase
+      eval(params["method"])
+    end
   end
   
-  def four
-    "4"
+  def render(body)
+    [200, {"Content-Type" => "text/html"}, [body]]
   end
 end

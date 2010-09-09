@@ -1,32 +1,31 @@
-require File.dirname(__FILE__) + "/router"
-require File.dirname(__FILE__) + "/handler"
+require "router"
+require "handler"
+require "handlers/rubyists"
+require "handlers/pythonistas"
 
 class MyApp
   def initialize(app)
     @app = app
     @router = Router.map do
-      get "/one", "Handler.one"
+      get "/ruby", {:handler => "rubyists", :method => "rubyists"}
+      get "/python", {:handler => "pythonistas", :method => "python"}
     end
   end
 
   def call(env)
-    route = @router.get_route(env).split(".")
-    begin
-      handler = eval(route[0]).new
-    rescue NameError
-      handler = nil
+    params = @router.get_route(env)
+    
+    params.each do |k, v|
+      env['QUERY_STRING'] << "&" unless env['QUERY_STRING'].empty?
+      env['QUERY_STRING'] << "#{k}=#{v}"
     end
-    m = route[1]
-    if handler && handler.public_methods.include?(m)
-      body = handler.send(m).to_s
-      [200, {"Content-Type" => "text/html"}, [body]]
-    else
-      @app.call env
-    end
+    @app.call(env)
   end
 end
 
 use MyApp
+use Rubyists
+use Pythonistas
 
 app = lambda do |env|
   body = File.open(File.dirname(__FILE__) + "/404.html", 'r').read
